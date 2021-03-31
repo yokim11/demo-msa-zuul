@@ -1,0 +1,52 @@
+info:
+  application:
+    name: ${spring.application.name}
+    version: ${spring.application.version}
+
+server:
+  port: 8000
+
+logging:
+  config: classpath:logback.xml
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: false
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
+
+---
+spring:
+  profiles: local
+
+  application:
+    name: demo-msa-zuul
+    version: 1.0.0
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        -   id: demo-api-hello
+            uri: http://localhost:8010
+            predicates:
+              - Path=/api/**
+            filters:
+              - RewritePath=/api/(?<path>.*),/$\{path}
+            metadata:
+              connect-timeout: 1000
+              response-timeout: 1000
